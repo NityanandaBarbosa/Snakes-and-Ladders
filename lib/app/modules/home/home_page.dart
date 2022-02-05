@@ -46,17 +46,17 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
     if (listLines.isEmpty) {
       runInAction(() {
         store.snakesIndexs.forEach((element) {
-          final fim = Offset((width * 0.085) * store.snakesMap[element].bottomCoord[0], (height * 0.048) * store.snakesMap[element].bottomCoord[1]);
-          final topo = Offset((width * 0.083) * store.snakesMap[element].topCoord[0], (height * 0.045) * store.snakesMap[element].topCoord[1]);
+          final top = Offset((width * 0.085) * store.snakesMap[element].bottomCoord[0], (height * 0.048) * store.snakesMap[element].bottomCoord[1]);
+          final bottom = Offset((width * 0.083) * store.snakesMap[element].topCoord[0], (height * 0.045) * store.snakesMap[element].topCoord[1]);
           listLines.add(CustomPaint(
-            foregroundPainter: SnakePainter(top: topo, bottom: fim),
+            foregroundPainter: SnakePainter(top: top, bottom: bottom),
           ));
         });
         store.ladderIndexs.forEach((element) {
-          final fim = Offset((width * 0.085) * store.laddersMap[element].bottomCoord[0], (height * 0.048) * store.laddersMap[element].bottomCoord[1]);
-          final topo = Offset((width * 0.083) * store.laddersMap[element].topCoord[0], (height * 0.045) * store.laddersMap[element].topCoord[1]);
+          final top = Offset((width * 0.085) * store.laddersMap[element].bottomCoord[0], (height * 0.048) * store.laddersMap[element].bottomCoord[1]);
+          final bottom = Offset((width * 0.083) * store.laddersMap[element].topCoord[0], (height * 0.045) * store.laddersMap[element].topCoord[1]);
           listLines.add(CustomPaint(
-            foregroundPainter: LadderPainter(top: topo, bottom: fim),
+            foregroundPainter: LadderPainter(top: top, bottom: bottom),
           ));
         });
         print("List of lines size : ${listLines.length}");
