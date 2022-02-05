@@ -15,13 +15,11 @@ class GameStep extends StatefulWidget {
 }
 
 class _GameStepState extends State<GameStep> {
-  bool showIndex = true;
   bool colorGreen = false;
   bool isHide = true;
 
   @override
   Widget build(BuildContext context) {
-    if ((widget.index == 1) || (widget.index == 100)) showIndex = false;
     if (widget.index % 2 == 0) colorGreen = true;
     return Observer(builder: (__) {
       return Stack(
@@ -33,14 +31,34 @@ class _GameStepState extends State<GameStep> {
                 border: Border.all(color: Colors.black),
                 shape: BoxShape.rectangle,
                 color: colorGreen ? Colors.green : Colors.white),
-            child: Center(
-              child: Text(showIndex ? "${widget.index}" : ""),
-            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(2, 2, 0, 0),
+              child: Positioned.fill(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                   "${widget.index}",
+                  style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            )
           ),
           if (widget.index == 1)
-            Icon(Icons.arrow_forward)
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: Icon(Icons.arrow_forward),
+              ),
+            )
+            
           else if (widget.index == 100)
-            Icon(Icons.home),
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.center,
+                child: Icon(Icons.home),
+              ),
+            ),
           if (widget.isHidePlayer1.value == false)
             CircleAvatar(
               radius: 10,
