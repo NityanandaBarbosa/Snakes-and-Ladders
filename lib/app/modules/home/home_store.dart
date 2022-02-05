@@ -1,4 +1,5 @@
 import 'package:mobx/mobx.dart';
+import 'package:snakes_and_ladders/app/modules/home/entities/CobrasEscadas.dart';
 import 'package:snakes_and_ladders/app/modules/home/model/LadderModel.dart';
 import 'package:snakes_and_ladders/app/modules/home/model/SnakeModel.dart';
 
@@ -9,17 +10,17 @@ class HomeStore = HomeStoreBase with _$HomeStore;
 abstract class HomeStoreBase with Store {
   final snakesMap = {
     99 : SnakeModel(topCoord: [2, 1],bottomCoord: [1, 3],bottomIndex: 80),
-    85 : SnakeModel(topCoord: [6, 1],bottomCoord: [6, 3],bottomIndex: 77),
+    95 : SnakeModel(topCoord: [6, 1],bottomCoord: [6, 3],bottomIndex: 75),
     92 : SnakeModel(topCoord: [9, 1],bottomCoord: [8, 2],bottomIndex: 88),
     89 : SnakeModel(topCoord: [9, 2],bottomCoord: [8, 4],bottomIndex: 68),
     74 : SnakeModel(topCoord: [7, 3],bottomCoord: [8, 5],bottomIndex: 53),
     62 : SnakeModel(topCoord: [2, 4],bottomCoord: [2, 9],bottomIndex: 19),
     64 : SnakeModel(topCoord: [4, 4],bottomCoord: [1, 5],bottomIndex: 60),
-    45 : SnakeModel(topCoord: [6, 6],bottomCoord: [5, 8],bottomIndex: 25),
+    46 : SnakeModel(topCoord: [6, 6],bottomCoord: [5, 8],bottomIndex: 25),
     49 : SnakeModel(topCoord: [9, 6],bottomCoord: [10, 9],bottomIndex: 11),
     16 : SnakeModel(topCoord: [5, 9],bottomCoord: [6, 10],bottomIndex: 6),
   };
-  final snakesIndexs = [99, 85, 92, 89,74, 62, 64, 45, 49, 16];
+  final snakesIndexs = [99, 95, 92, 89, 74, 62, 64, 46, 49, 16];
 
   final laddersMap = {
     87 : LadderModel(topCoord: [7, 2],bottomCoord: [7, 1],topIndex: 94), //ok
