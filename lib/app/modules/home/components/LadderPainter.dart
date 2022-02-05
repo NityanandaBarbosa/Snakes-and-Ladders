@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class SnakePainter extends CustomPainter {
+class LadderPainter extends CustomPainter {
   final Offset top;
   final Offset bottom;
 
-  SnakePainter({this.top, this.bottom});
+  LadderPainter({this.top, this.bottom});
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.greenAccent
+      ..color = Colors.amber
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5;
 

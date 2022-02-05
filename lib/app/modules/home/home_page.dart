@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:mobx/mobx.dart';
 import 'package:snakes_and_ladders/app/modules/home/components/GameStep.dart';
+import 'package:snakes_and_ladders/app/modules/home/components/LadderPainter.dart';
 import 'package:snakes_and_ladders/app/modules/home/components/SnakePainter.dart';
 import 'package:snakes_and_ladders/app/modules/home/home_store.dart';
 
@@ -18,7 +19,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends ModularState<HomePage, HomeStore> {
   final listOfStep = <GameStep>[];
   List<Widget> listOfStepChanged = [];
-  final listLines = <CustomPaint>[];
+  final listLines = <Widget>[];
   final showLines = Observable<bool>(false);
 
   @override
@@ -45,10 +46,17 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
     if (listLines.isEmpty) {
       runInAction(() {
         store.snakesIndexs.forEach((element) {
-          final fim = Offset((width * 0.085) * store.mapList[element].bottomCoord[0], (height * 0.048) * store.mapList[element].bottomCoord[1]);
-          final topo = Offset((width * 0.083) * store.mapList[element].topCoord[0], (height * 0.045) * store.mapList[element].topCoord[1]);
+          final fim = Offset((width * 0.085) * store.snakesMap[element].bottomCoord[0], (height * 0.048) * store.snakesMap[element].bottomCoord[1]);
+          final topo = Offset((width * 0.083) * store.snakesMap[element].topCoord[0], (height * 0.045) * store.snakesMap[element].topCoord[1]);
           listLines.add(CustomPaint(
             foregroundPainter: SnakePainter(top: topo, bottom: fim),
+          ));
+        });
+        store.ladderIndexs.forEach((element) {
+          final fim = Offset((width * 0.085) * store.laddersMap[element].bottomCoord[0], (height * 0.048) * store.laddersMap[element].bottomCoord[1]);
+          final topo = Offset((width * 0.083) * store.laddersMap[element].topCoord[0], (height * 0.045) * store.laddersMap[element].topCoord[1]);
+          listLines.add(CustomPaint(
+            foregroundPainter: LadderPainter(top: topo, bottom: fim),
           ));
         });
         print("List of lines size : ${listLines.length}");
