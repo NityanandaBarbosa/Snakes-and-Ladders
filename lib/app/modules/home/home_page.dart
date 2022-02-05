@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:mobx/mobx.dart';
 import 'package:snakes_and_ladders/app/modules/home/components/GameStep.dart';
+import 'package:snakes_and_ladders/app/modules/home/components/SnakePainter.dart';
 import 'package:snakes_and_ladders/app/modules/home/home_store.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,7 +17,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends ModularState<HomePage, HomeStore> {
   final listOfStep = <GameStep>[];
-  List<GameStep> listOfStepChanged = [];
+  List<Widget> listOfStepChanged = [];
+  final listLines = <CustomPaint>[];
+  final showLines = Observable<bool>(false);
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -36,9 +41,20 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
         listOfStepChanged.add(listOfStep[element - 1]);
       });
     }
-    runInAction(() {
-        listOfStep[80].isHidePlayer2.value = false;
+
+    if (listLines.isEmpty) {
+      runInAction(() {
+        store.snakesIndexs.forEach((element) {
+          final fim = Offset((width * 0.085) * store.mapList[element][1][0], (height * 0.048) * store.mapList[element][1][1]);
+          final topo = Offset((width * 0.083) * store.mapList[element][0][0], (height * 0.045) * store.mapList[element][0][1]);
+          listLines.add(CustomPaint(
+            foregroundPainter: SnakePainter(top: topo, bottom: fim),
+          ));
+        });
+        print("List of lines size : ${listLines.length}");
+        showLines.value = true;
       });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -61,10 +77,12 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
                       ),
                     ),
                   ),
-                  Flexible(
-                      child: Wrap(
-                    children: listOfStepChanged,
-                  )),
+                  Stack(
+                    children: [
+                      Wrap(children: listOfStepChanged),
+                      if (showLines.value == true) ...listLines
+                    ],
+                  ),
                 ],
               ),
             ),
