@@ -8,7 +8,7 @@ class SnakePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.greenAccent
+      ..color = Colors.lightGreen.withOpacity(0.95)
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5;
 

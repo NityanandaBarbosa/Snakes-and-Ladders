@@ -8,7 +8,7 @@ class LadderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.amber
+      ..color = Colors.amber.withOpacity(0.9)
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5;
 
