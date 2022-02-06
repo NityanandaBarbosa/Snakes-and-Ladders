@@ -9,7 +9,6 @@ part 'home_store.g.dart';
 class HomeStore = HomeStoreBase with _$HomeStore;
 
 abstract class HomeStoreBase with Store {
-  
   final trap = Observable<GameTrap>(GameTrap(message: "initGame"));
 
   final snakesMap = {
@@ -65,6 +64,17 @@ abstract class HomeStoreBase with Store {
     }
     for (int i = 1; i < 101; i++) {
       listOfIndexSorted.add(i);
+    }
+  }
+
+  void endGame(CobrasEscadas dice) {
+    if (dice.hasWinner.value) {
+      runInAction(() {
+        trap.value = GameTrap(
+          message: "O jogo acabou!",
+          type: "Fim"
+        );
+      });
     }
   }
 }

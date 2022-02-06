@@ -25,6 +25,8 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
   List<Widget> listOfStepChanged = [];
   final listLines = <Widget>[];
   final showLines = Observable<bool>(false);
+  final snakeAndLadderDelay = Duration(milliseconds: 1500);
+  final playerDelay = Duration(milliseconds: 250);
 
   @override
   void initState() {
@@ -77,17 +79,21 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
       floatingActionButton: Observer(builder: (_) {
         return FloatingActionButton(
             child: Text("Jogar"),
-            onPressed: !dice.isDicesBlocked.value
-                ? (() async {
-                    await movePlayer(dice.jogar());
-                    runInAction(() {
-                      dice.isDicesBlocked.value = false;
-                      if (!dice.equalsDice.value)
-                        dice.isPlayer1.value = !dice.isPlayer1.value;
-                      dice.dicesResultLabel.value = "";
-                    });
-                  })
-                : null);
+            onPressed: !dice.hasWinner.value
+                ? !dice.isDicesBlocked.value
+                    ? (() async {
+                        await movePlayer(dice.jogar());
+                        runInAction(() {
+                          dice.isDicesBlocked.value = false;
+                          if (!dice.equalsDice.value)
+                            if(!dice.hasWinner.value)
+                              dice.isPlayer1.value = !dice.isPlayer1.value;
+                        });
+                      })
+                    : null
+                : (() {
+                    store.endGame(dice);
+                  }));
       }),
     );
   }
@@ -138,7 +144,6 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
             foregroundPainter: LadderPainter(top: top, bottom: bottom),
           ));
         });
-        print("List of lines size : ${listLines.length}");
         showLines.value = true;
       });
     }
@@ -146,15 +151,16 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
 
   Widget messageShow(height, width) {
     return Container(
-      padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
       height: height * 0.13,
       width: width * 0.51,
       child: Card(
         child: Padding(
           padding: EdgeInsets.fromLTRB(4, 0, 4, 0),
           child: Center(
-            child: Text(
-                "${dice.equalsDice.value && !dice.isDicesBlocked.value ? "Jogue novamente" : "É a vez do jogador"} ${dice.isPlayer1.value ? "Azul" : "Laranja"}"),
+            child: Text(!dice.hasWinner.value
+                ? "${dice.equalsDice.value && !dice.isDicesBlocked.value ? "Jogue novamente" : "É a vez do jogador"} ${dice.isPlayer1.value ? "Azul" : "Laranja"}"
+                : "Jogador ${dice.isPlayer1.value ? "Azul" : "Laranja"} Venceu!"),
           ),
         ),
       ),
@@ -162,25 +168,43 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
   }
 
   Widget dicesResult(width) {
-    return Visibility(
-      visible: dice.dicesResultLabel.value.isNotEmpty,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
-        width: width * 0.65,
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Center(
-              child: Text(dice.dicesResultLabel.value),
+    return Wrap(
+      // crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Visibility(
+          visible: dice.dicesPlayer1ResultLabel.value.isNotEmpty,
+          child: Container(
+            width: width * 0.75,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: Text("Azul - ${dice.dicesPlayer1ResultLabel.value}"),
+                ),
+              ),
             ),
           ),
         ),
-      ),
+        Visibility(
+          visible: dice.dicesPlayer2ResultLabel.value.isNotEmpty,
+          child: Container(
+            width: width * 0.75,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child:
+                      Text("Laranja - ${dice.dicesPlayer2ResultLabel.value}"),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Future<void> isSnakeHead(int index) async {
-    final delay = Duration(milliseconds: 1500);
     if (store.snakesMap[index] != null) {
       runInAction(() {
         store.trap.value = GameTrap(
@@ -188,7 +212,7 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
                 "O jogador parou na cabeça de um cobra! Será movido para casa ${store.snakesMap[index].bottomIndex}",
             type: "Cobra");
       });
-      await Future.delayed(delay, () {
+      await Future.delayed(snakeAndLadderDelay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
             listOfStep[dice.player1Index.value].isHidePlayer1.value = true;
@@ -199,7 +223,7 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
           }
         });
       });
-      await Future.delayed(delay, () {
+      await Future.delayed(snakeAndLadderDelay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
             listOfStep[dice.player1Index.value].isHidePlayer1.value = false;
@@ -212,7 +236,6 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
   }
 
   Future<void> isLadderBottom(int index) async {
-    final delay = Duration(milliseconds: 1500);
     if (store.laddersMap[index] != null) {
       runInAction(() {
         store.trap.value = GameTrap(
@@ -220,7 +243,7 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
                 "O jogador parou em um escada! Será movido para casa ${store.laddersMap[index].topIndex}",
             type: "Escada");
       });
-      await Future.delayed(delay, () {
+      await Future.delayed(snakeAndLadderDelay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
             listOfStep[dice.player1Index.value].isHidePlayer1.value = true;
@@ -231,7 +254,7 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
           }
         });
       });
-      await Future.delayed(delay, () {
+      await Future.delayed(snakeAndLadderDelay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
             listOfStep[dice.player1Index.value].isHidePlayer1.value = false;
@@ -244,23 +267,24 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
   }
 
   Future<void> movePlayer(int sumDices) async {
-    final delay = Duration(milliseconds: 350);
+    bool goBack = false;
     int currentIndex = 0;
     for (int i = 0; i < sumDices; i++) {
-      await Future.delayed(delay, () {
+      if (currentIndex >= 100) goBack = true;
+      await Future.delayed(playerDelay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
             listOfStep[dice.player1Index.value].isHidePlayer1.value = true;
-            dice.player1Index.value++;
+            !goBack ? dice.player1Index.value++ : dice.player1Index.value -= 1;
             currentIndex = dice.player1Index.value + 1;
           } else {
             listOfStep[dice.player2Index.value].isHidePlayer2.value = true;
-            dice.player2Index.value++;
+            !goBack ? dice.player2Index.value++ : dice.player2Index.value -= 1;
             currentIndex = dice.player2Index.value + 1;
           }
         });
       });
-      await Future.delayed(delay, () {
+      await Future.delayed(playerDelay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
             listOfStep[dice.player1Index.value].isHidePlayer1.value = false;
@@ -268,6 +292,11 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
             listOfStep[dice.player2Index.value].isHidePlayer2.value = false;
           }
         });
+      });
+    }
+    if (dice.player1Index.value == 99 || dice.player2Index.value == 99) {
+      runInAction(() {
+        dice.hasWinner.value = true;
       });
     }
     await this.isLadderBottom(currentIndex);
