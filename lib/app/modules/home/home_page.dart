@@ -1,3 +1,4 @@
+import 'package:edge_alerts/edge_alerts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -7,6 +8,7 @@ import 'package:snakes_and_ladders/app/modules/home/components/GameStep.dart';
 import 'package:snakes_and_ladders/app/modules/home/components/LadderPainter.dart';
 import 'package:snakes_and_ladders/app/modules/home/components/SnakePainter.dart';
 import 'package:snakes_and_ladders/app/modules/home/entities/CobrasEscadas.dart';
+import 'package:snakes_and_ladders/app/modules/home/entities/game_trap.dart';
 import 'package:snakes_and_ladders/app/modules/home/home_store.dart';
 
 class HomePage extends StatefulWidget {
@@ -25,10 +27,72 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
   final showLines = Observable<bool>(false);
 
   @override
+  void initState() {
+    super.initState();
+    reaction((_) => store.trap.value, (_) {
+      edgeAlert(context,
+          title: store.trap.value.type,
+          description: store.trap.value.message,
+          duration: 1,
+          icon: Icons.error,
+          gravity: Gravity.top,
+          backgroundColor: Colors.blue);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
 
+    initGame(height, width);
+
+    return Scaffold(
+      appBar: AppBar(
+        // iconTheme: IconThemeData(color: AppColors.getColor.dellBlueOrYellow),
+        backgroundColor: Colors.grey.withOpacity(0.005),
+        elevation: 0.0,
+      ),
+      body: SafeArea(
+        child: Observer(
+          builder: (context) => Center(
+            child: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Column(
+                children: [
+                  messageShow(height, width),
+                  Stack(
+                    children: [
+                      Wrap(children: listOfStepChanged),
+                      if (showLines.value == true) ...listLines
+                    ],
+                  ),
+                  dicesResult(width)
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      floatingActionButton: Observer(builder: (_) {
+        return FloatingActionButton(
+            child: Text("Jogar"),
+            onPressed: !dice.isDicesBlocked.value
+                ? (() async {
+                    await movePlayer(dice.jogar());
+                    runInAction(() {
+                      dice.isDicesBlocked.value = false;
+                      if (!dice.equalsDice.value)
+                        dice.isPlayer1.value = !dice.isPlayer1.value;
+                      dice.dicesResultLabel.value = "";
+                    });
+                  })
+                : null);
+      }),
+    );
+  }
+
+  void initGame(height, width) {
     if (store.listIndex.isEmpty) {
       store.addIndexs();
       store.listOfIndexSorted.forEach((element) {
@@ -78,62 +142,52 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
         showLines.value = true;
       });
     }
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Snakes and Ladders'),
+  Widget messageShow(height, width) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+      height: height * 0.13,
+      width: width * 0.51,
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(4, 0, 4, 0),
+          child: Center(
+            child: Text(
+                "${dice.equalsDice.value && !dice.isDicesBlocked.value ? "Jogue novamente" : "É a vez do jogador"} ${dice.isPlayer1.value ? "Azul" : "Laranja"}"),
+          ),
+        ),
       ),
-      body: SafeArea(
-        child: Observer(
-          builder: (context) => Center(
-            child: Padding(
-              padding: EdgeInsets.all(10.0),
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
-                    height: height * 0.1,
-                    width: width * 0.5,
-                    child: Card(
-                      child: Center(
-                        child: Text(
-                            "É a vez do jogador ${dice.isPlayer1.value ? "Azul" : "Laranja"}"),
-                      ),
-                    ),
-                  ),
-                  Stack(
-                    children: [
-                      Wrap(children: listOfStepChanged),
-                      if (showLines.value == true) ...listLines
-                    ],
-                  ),
-                ],
-              ),
+    );
+  }
+
+  Widget dicesResult(width) {
+    return Visibility(
+      visible: dice.dicesResultLabel.value.isNotEmpty,
+      child: Container(
+        padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+        width: width * 0.65,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Text(dice.dicesResultLabel.value),
             ),
           ),
         ),
       ),
-      floatingActionButton: Observer(builder: (_) {
-        return FloatingActionButton(
-            child: Text("Jogar"),
-            onPressed: !dice.isDicesBlocked.value
-                ? (() async {
-                    final sumDices = dice.jogar();
-                    await movePlayer(sumDices);
-                    runInAction(() {
-                      dice.isDicesBlocked.value = false;
-                      if(!dice.equalsDice.value)
-                        dice.isPlayer1.value = !dice.isPlayer1.value;
-                    });
-                  })
-                : null);
-      }),
     );
   }
 
   Future<void> isSnakeHead(int index) async {
-    final delay = Duration(milliseconds: 350);
+    final delay = Duration(milliseconds: 1500);
     if (store.snakesMap[index] != null) {
+      runInAction(() {
+        store.trap.value = GameTrap(
+            message:
+                "O jogador parou na cabeça de um cobra! Será movido para casa ${store.snakesMap[index].bottomIndex}",
+            type: "Cobra");
+      });
       await Future.delayed(delay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
@@ -158,8 +212,14 @@ class _HomePageState extends ModularState<HomePage, HomeStore> {
   }
 
   Future<void> isLadderBottom(int index) async {
-    final delay = Duration(milliseconds: 350);
+    final delay = Duration(milliseconds: 1500);
     if (store.laddersMap[index] != null) {
+      runInAction(() {
+        store.trap.value = GameTrap(
+            message:
+                "O jogador parou em um escada! Será movido para casa ${store.laddersMap[index].topIndex}",
+            type: "Escada");
+      });
       await Future.delayed(delay, () {
         runInAction(() {
           if (dice.isPlayer1.value) {
